@@ -1,4 +1,4 @@
-const API_URL = "https://neonoble-otc-desk.onrender.com"; // ← TUO BACKEND RENDER LIVE
+const API_URL = "https://neonoble-otc-desk.onrender.com"; // BACKEND RENDER LIVE
 
 let currentQuote = {};
 
@@ -6,21 +6,21 @@ async function getQuote() {
   const amount = document.getElementById("amount").value;
   const receiveIn = document.getElementById("receiveIn").value;
 
-  if (!amount || amount <= 0) {
+  if (!amount || amount < 1) {
     alert("Inserisci una quantità valida");
     return;
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/otc/quote`, {
+    const response = await fetch(`${API_URL}/api/otc/quote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nenoAmount: Number(amount), receiveIn })
     });
 
-    if (!res.ok) throw new Error(`Errore ${res.status}`);
+    if (!response.ok) throw new Error("Errore server");
 
-    currentQuote = await res.json();
+    currentQuote = await response.json();
 
     document.getElementById("quote").innerHTML = `
       <h3>Quotazione</h3>
@@ -31,7 +31,6 @@ async function getQuote() {
           : currentQuote.cryptoAmount.toFixed(6) + " " + receiveIn
         }
       </strong></p>
-      <p>su ${receiveIn === "EUR" ? "IBAN Unicredit" : "wallet crypto"}</p>
     `;
 
     document.getElementById("payment").style.display = "block";
@@ -41,7 +40,6 @@ async function getQuote() {
 
   } catch (err) {
     alert("Errore: " + err.message);
-    console.error(err);
   }
 }
 
@@ -49,31 +47,18 @@ async function executeTrade() {
   const iban = document.getElementById("iban").value;
   const wallet = document.getElementById("wallet").value;
 
-  if (!currentQuote.quoteId) {
-    alert("Prima fai una quotazione");
-    return;
-  }
+  if (!currentQuote.quoteId) return alert("Prima fai una quotazione");
 
-  try {
-    const res = await fetch(`${API_URL}/api/otc/execute`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...currentQuote,
-        iban: iban || null,
-        walletAddress: wallet || null
-      })
-    });
+  const res = await fetch(`${API_URL}/api/otc/execute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...currentQuote,
+      iban: iban || null,
+      walletAddress: wallet || null
+    })
+  });
 
-    const data = await res.json();
-
-    if (data.success) {
-      alert(`OFF-RAMP COMPLETO!\n${data.message}`);
-    } else {
-      alert("Errore: " + data.error);
-    }
-  } catch (err) {
-    alert("Errore di rete: " + err.message);
-  }
+  const data = await res.json();
+  alert(data.success ? "OFF-RAMP COMPLETO! Fondi inviati." : "Errore: " + data.error);
 }
-
