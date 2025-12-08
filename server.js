@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.error('MongoDB errore:', err));
 
 // Rotte API
-app.use('/api/otc', require('./controllers/otcController'));
+app.use('/api/otc', require('./backend/controllers/otcController'));
 
 // Servi frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
