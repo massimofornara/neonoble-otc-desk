@@ -1,38 +1,79 @@
-const API_URL = "https://neonoble-otc-desk.onrender.com";  // ← URL Render live
+const API_URL = "https://neonoble-otc-desk.onrender.com"; // ← TUO BACKEND RENDER LIVE
 
-let quote = {};
+let currentQuote = {};
 
 async function getQuote() {
-  const amount = document.getElementById('amount').value;
-  const receiveIn = document.getElementById('receiveIn').value;
-  if (!amount || amount < 1) return alert("Inserisci quantità");
+  const amount = document.getElementById("amount").value;
+  const receiveIn = document.getElementById("receiveIn").value;
 
-  const res = await fetch(`${API_URL}/api/otc/quote`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nenoAmount: Number(amount), receiveIn })
-  });
-  quote = await res.json();
+  if (!amount || amount <= 0) {
+    alert("Inserisci una quantità valida");
+    return;
+  }
 
-  document.getElementById('quote').innerHTML = `
-    <h3>Ricevi:</h3>
-    <p>${receiveIn === 'EUR' ? quote.totalEur.toLocaleString() + ' €' : quote.cryptoAmount + ' ' + receiveIn}</p>
-    <p>su ${receiveIn === 'EUR' ? 'IBAN Unicredit' : 'wallet'}</p>`;
-  document.getElementById('payment').style.display = 'block';
-  document.getElementById('iban').style.display = receiveIn === 'EUR' ? 'block' : 'none';
-  document.getElementById('wallet').style.display = receiveIn !== 'EUR' ? 'block' : 'none';
-  document.getElementById('iban').value = quote.defaultIban || '';
+  try {
+    const res = await fetch(`${API_URL}/api/otc/quote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nenoAmount: Number(amount), receiveIn })
+    });
+
+    if (!res.ok) throw new Error(`Errore ${res.status}`);
+
+    currentQuote = await res.json();
+
+    document.getElementById("quote").innerHTML = `
+      <h3>Quotazione</h3>
+      <p><strong>${currentQuote.nenoAmount.toLocaleString()} NENO</strong></p>
+      <p>Ricevi: <strong>
+        ${receiveIn === "EUR" 
+          ? currentQuote.totalEur.toLocaleString() + " €" 
+          : currentQuote.cryptoAmount.toFixed(6) + " " + receiveIn
+        }
+      </strong></p>
+      <p>su ${receiveIn === "EUR" ? "IBAN Unicredit" : "wallet crypto"}</p>
+    `;
+
+    document.getElementById("payment").style.display = "block";
+    document.getElementById("iban").style.display = receiveIn === "EUR" ? "block" : "none";
+    document.getElementById("wallet").style.display = receiveIn !== "EUR" ? "block" : "none";
+    document.getElementById("iban").value = currentQuote.defaultIban || "";
+
+  } catch (err) {
+    alert("Errore: " + err.message);
+    console.error(err);
+  }
 }
 
 async function executeTrade() {
-  const iban = document.getElementById('iban').value;
-  const wallet = document.getElementById('wallet').value;
+  const iban = document.getElementById("iban").value;
+  const wallet = document.getElementById("wallet").value;
 
-  const res = await fetch(`${API_URL}/api/otc/execute`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...quote, iban, walletAddress: wallet })
-  });
-  const data = await res.json();
-  alert(data.success ? "OFF-RAMP COMPLETO! Fondi inviati." : data.error);
+  if (!currentQuote.quoteId) {
+    alert("Prima fai una quotazione");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/api/otc/execute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...currentQuote,
+        iban: iban || null,
+        walletAddress: wallet || null
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert(`OFF-RAMP COMPLETO!\n${data.message}`);
+    } else {
+      alert("Errore: " + data.error);
+    }
+  } catch (err) {
+    alert("Errore di rete: " + err.message);
+  }
 }
+
