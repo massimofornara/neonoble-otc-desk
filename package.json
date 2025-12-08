@@ -18,3 +18,4 @@
     "crypto-js": "^4.2.0"  // Per HMAC signing MEXC
   }
 }
+
