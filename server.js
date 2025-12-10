@@ -13,7 +13,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connesso'))
   .catch(err => console.error('MongoDB errore:', err));
 
-const otcRoutes = require('./controllers/otcController'); // ← corretto
+const otcRoutes = require('./backend/controllers/otcController'); // ← corretto
 app.use('/api/otc', otcRoutes); // ← corretto
 
 app.use(express.static(path.join(__dirname, '../frontend')));
