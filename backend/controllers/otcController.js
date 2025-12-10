@@ -36,7 +36,7 @@ router.post('/execute', async (req, res) => {
         currency: 'eur',
         method: 'standard',
         destination: iban,
-        description: `NeoNoble Off-Ramp – ${nenoAmount NENO`
+        description: `NeoNoble Off-Ramp – ${nenoAmount} NENO` // PARENTESI CHIUSA!
       });
       payoutId = payout.id;
     }
@@ -58,9 +58,10 @@ router.post('/execute', async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Payout error:", err);
+    console.error("Errore payout:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 module.exports = router;
+
