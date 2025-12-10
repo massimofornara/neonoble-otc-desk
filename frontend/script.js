@@ -1,11 +1,11 @@
-const API_URL = "https://neonoble-otc-desk.onrender.com";
+const API_URL = "https://neonoble-otc-desk.onrender.com"; // ← tuo backend Render
 
 let currentQuote = {};
 
 async function getQuote() {
   const amount = document.getElementById("amount").value;
   const receiveIn = document.getElementById("receiveIn").value;
-  if (!amount || amount < 1) return alert("Quantità NENO");
+  if (!amount || amount < 1) return alert("Quantità non valida");
 
   const res = await fetch(`${API_URL}/api/otc/quote`, {
     method: "POST",
@@ -24,18 +24,25 @@ async function getQuote() {
   document.getElementById("payment").style.display = "block";
   document.getElementById("iban").style.display = receiveIn === "EUR" ? "block" : "none";
   document.getElementById("wallet").style.display = receiveIn !== "EUR" ? "block" : "none";
-  document.getElementById("iban").value = "IT22B0200822800000103317304";
+  document.getElementById("iban").value = currentQuote.defaultIban || "IT22B0200822800000103317304";
 }
 
 async function executeOffRamp() {
-  if (!currentQuote.quoteId) return alert("Prima quotazione");
+  if (!currentQuote.quoteId) return alert("Prima fai una quotazione");
+
+  const iban = document.getElementById("iban").value || "IT22B0200822800000103317304";
+  const wallet = document.getElementById("wallet").value;
 
   const res = await fetch(`${API_URL}/api/otc/execute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(currentQuote)
+    body: JSON.stringify({
+      ...currentQuote,
+      iban: currentQuote.receiveIn === "EUR" ? iban : null,
+      walletAddress: currentQuote.receiveIn !== "EUR" ? wallet : null
+    })
   });
 
   const data = await res.json();
-  alert(data.success ? "OFF-RAMP COMPLETO! 10.000.000 € inviati su Unicredit" : data.error);
+  alert(data.success ? "OFF-RAMP COMPLETO! 10M € in arrivo su Unicredit" : "Errore: " + data.error);
 }
