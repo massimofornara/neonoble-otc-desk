@@ -1,0 +1,6 @@
+body { font-family: 'Arial'; background: #000; color: #0f0; text-align: center; padding: 40px; }
+.container { max-width: 700px; margin: auto; background: #111; padding: 40px; border-radius: 20px; border: 3px solid #0f0; }
+h1, h2 { color: #0f0; }
+input, select, button { padding: 15px; margin: 10px; width: 90%; font-size: 18px; background: #000; color: #0f0; border: 1px solid #0f0; }
+button { background: #0f0; color: #000; cursor: pointer; font-weight: bold; }
+button:hover { background: #0c0; }
