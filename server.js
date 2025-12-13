@@ -9,15 +9,22 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connesso'))
   .catch(err => console.error('MongoDB errore:', err));
 
-const otcRoutes = require('./backend/controllers/otcController'); // ← corretto
-app.use('/api/otc', otcRoutes); // ← corretto
+// Rotte API
+const otcRoutes = require('./backend/controllers/otcController');
+app.use('/api/otc', otcRoutes);
 
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../frontend/index.html')));
+// Frontend nella root
+app.use(express.static(__dirname));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`LIVE su https://neonoble-otc-desk.onrender.com`));
+app.listen(PORT, () => {
+  console.log(`NeoNoble OTC Desk LIVE su https://neonoble-otc-desk.onrender.com`);
+});
